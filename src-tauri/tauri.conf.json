@@ -100,14 +100,12 @@
         "desktopTemplate": "compressO.desktop.template"
       }
     },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": false
   },
   "plugins": {
     "updater": {
       "active": true,
-      "endpoints": [
-        "https://github.com/codeforreal1/compressO/releases/latest/download/latest.json"
-      ],
+      "endpoints": [],
       "dialog": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZDRjIzRTAxQzc1Njc4RjgKUldUNGVGYkhBVDd5YkJNejh2aHlOeS9XekFOcUlxUXhIYlBLS1ZLdHJzVW4zRVE1QUhUUjZOd0QK"
     }
@@ -128,7 +126,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://asset.localhost blob: data:; media-src 'self' asset: http://asset.localhost https://asset.localhost blob:; style-src 'unsafe-inline' 'self'; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost asset: blob: blob:tauri://localhost;",
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://asset.localhost blob: data:; media-src 'self' asset: http://asset.localhost https://asset.localhost blob:; style-src 'unsafe-inline' 'self'; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost asset: blob: blob:tauri://localhost https://*.supabase.co https://*.supabase.in;",
       "dangerousDisableAssetCspModification": ["style-src"],
       "assetProtocol": {
         "enable": true,

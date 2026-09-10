@@ -17,6 +17,7 @@ import Title from '@/components/Title'
 import { toast } from '@/components/Toast'
 import Tooltip from '@/components/Tooltip'
 import { usePrimaryColor } from '@/hooks/usePrimaryColor'
+import { useAuth } from '@/providers/AuthProvider'
 import { downloadAndInstallUpdateApp, updateStore } from '@/stores/updateStore'
 import { deleteCache as invokeDeleteCache } from '@/tauri/commands/fs'
 import About from './About'
@@ -27,9 +28,24 @@ type DropdownKey = 'settings' | 'about' | 'update' | 'credits'
 function Setting() {
   const modalDisclosure = useDisclosure()
   const { isUpdateAvailable, latestVersion } = useSnapshot(updateStore)
+  const { session, signOut } = useAuth()
 
   const [selectedKey, setSelectedKey] = React.useState<DropdownKey>('settings')
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast.success('Signed out.')
+    } catch (_) {
+      toast.error('Failed to sign out.')
+    }
+  }
+
   const handleDropdownAction = (item: string | number) => {
+    if (item === 'signout') {
+      handleSignOut()
+      return
+    }
     modalDisclosure.onOpen()
     setSelectedKey(item as DropdownKey)
   }
@@ -85,6 +101,15 @@ function Setting() {
                 Update to {latestVersion}
               </DropdownItem>
             ) : null}
+            <DropdownItem
+              key="signout"
+              className="text-danger"
+              startContent={<Icon name="back" />}
+            >
+              {session?.user.email
+                ? `Sign Out (${session.user.email})`
+                : 'Sign Out'}
+            </DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>

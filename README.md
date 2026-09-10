@@ -2,82 +2,74 @@
   <div align="center">
    <img width="150" height="150" src="public/app-icon.png" alt="Logo" />
   </div>
-	<h1 align="center">CompressO</h1>
+	<h1 align="center">CompressO Auth Edition</h1>
 	<p align="center">
-		Compress any video/image into a tiny size.
+		Compress any video/image into a tiny size — behind an account gate.
     </p>
     <i align="center">
-		CompressO (🔉 pronounced like "Espresso" ) is a free and open-source video/image compression app.
+		A community fork of <a href="https://github.com/codeforreal1/compressO">codeforreal1/compressO</a>, published under the same AGPL-3.0 license.
     </i>
     <br />
-    <p align="center">
-		Available for <strong>Linux</strong>, <strong>Windows</strong> & <strong>MacOS</strong>.
-    </p>
-    <br />
-	<div>
-  <a href="https://github.com/codeforreal1/compressO/releases">
-    <img alt="Linux" src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=black&color=orange" />
-  </a>
-  <a href="https://github.com/codeforreal1/compressO/releases">
-    <img alt="Windows" src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white" />
-  </a>
-  <a href="https://github.com/codeforreal1/compressO/releases">
-    <img alt="macOS" src="https://img.shields.io/badge/-macOS-black?style=flat-square&logo=apple&logoColor=white" />
-  </a>
-</div>
-	    <br />
-
-</div>
-<div align="center">
-    <img src="public/screenshot.png" alt="Screenshot" height="500" style="border-radius: 16px;" />
 </div>
 
-### Install
-Download installers📦 for the specific platform can be accessed from the [releases](https://github.com/codeforreal1/compressO/releases) page.
+> [!IMPORTANT]
+> **This is a fork, not the original app.** Upstream CompressO (by [Code For Real](https://github.com/codeforreal1)) is a fully offline app with no accounts. This edition adds an email sign-in gate and disables the upstream auto-updater. All changes are open-sourced here under **AGPL-3.0**, and the upstream copyright is retained. Please support the original project.
 
-<strong>Installer Info:</strong>
+## What's different from upstream
 
-- `CompressO_amd64.deb`: Debian derivative of Linux like Ubuntu
-- `CompressO_amd64.AppImage`: Universal package for all Linux distros
-- `CompressO_aarch64.dmg` : For Macbooks with Apple Silicon Chips
-- `CompressO_x64.dmg` : For Macbooks with Intel Chip
-- `CompressO_x64.msi`: Windows 64 bit
+- **Email + password sign-in / sign-up** (powered by [Supabase Auth](https://supabase.com/docs/guides/auth)) is required before the app can be used when auth is configured. Compression itself still runs 100% locally via bundled FFmpeg/pngquant/jpegoptim/gifski binaries — no media ever leaves your device. First sign-in requires internet; afterwards the session persists locally.
+- **Upstream auto-updater disabled.** It pointed at upstream releases, which would silently overwrite this fork with the non-auth version. Point `plugins.updater.endpoints` in `src-tauri/tauri.conf.json` at your own update feed if you want auto-updates back.
+- **Builds without Supabase credentials skip the login gate** and behave exactly like upstream (handy for local development).
 
-<strong>Homebrew: MacOS only!</strong>
+## Configure your own auth backend (Supabase)
+
+The app talks to a [Supabase](https://supabase.com) project that **you** create and own (free tier is enough):
+
+1. Create a project at [supabase.com/dashboard](https://supabase.com/dashboard).
+2. In **Authentication → Sign In / Providers → Email**, keep Email enabled. Turn **off "Confirm email"** if you don't want the email-verification step for new accounts.
+3. In **Project Settings → API**, copy the **Project URL** and the **anon public key**.
+4. Copy the env template and fill in the values:
+   ```
+   cp .env.example .env
+   ```
+   ```
+   VITE_SUPABASE_URL=https://<your-project>.supabase.co
+   VITE_SUPABASE_ANON_KEY=<your-anon-key>
+   ```
+5. Build as usual — the credentials are baked into the frontend bundle at build time.
+
+> The anon key is a *public* client key by design (Row Level Security protects the data), so bundling it is standard Supabase practice. For production use, review your Supabase auth rate limits and email quotas.
+
+## Install
+
+Download installers from the [releases](../../releases) page of this repository.
+
+- `CompressO_amd64.deb` / `CompressO_amd64.AppImage` — Linux
+- `CompressO_aarch64.dmg` / `CompressO_x64.dmg` — macOS (Apple Silicon / Intel)
+- `CompressO_x64.msi` — Windows 64 bit
+
+The original app is also available via Homebrew (macOS):
 ```
 brew install --cask codeforreal1/tap/compresso
 ```
 
 > [!NOTE]
-> By using CompressO, you acknowledge that it's not [notarized](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution).
->
-> Notarization is a "security" feature by Apple.
-> You send binaries to Apple, and they either approve them or not.
-> In reality, notarization is about paying $100 annual fee to Apple and building the app/binaries the way they want it.
->
-> This is a free & open-source app. Paying the annual fee and notarizing the app to appease Apple is not feasible.
->
-> The [Homebrew installation script](https://github.com/codeforreal1/homebrew-tap/blob/main/Casks/compresso.rb) is configured to
-> automatically delete `com.apple.quarantine` attribute, that's why the app should work out of the box, without any warnings like 
-> "CompressO is damaged and can't be opened. You should move it to trash." that Apple show as a gatekeeper.
-
+> macOS builds are not notarized. If macOS reports the app as damaged, run `xattr -cr /Applications/CompressO.app` (see the FAQs below for details).
 
 ### Tech
 
 This app is created using [Tauri](https://tauri.app/), a Rust🦀 framework for building a cross-platform desktop app. It uses [React](https://react.dev) powered by [Vite](https://vite.dev/) as a frontend layer. The compression is done entirely by 3rd part tools like [FFmpeg](https://ffmpeg.org/), [pngquant](https://pngquant.org/), [jpegoptim](https://github.com/tjko/jpegoptim), [gifski](https://gif.ski/), etc. using platform specific standalone binaries.
-The app works completely offline and no any network requests is made to/from the app(except for built-in app updates).
+
+Upstream works completely offline; this fork additionally talks to your configured Supabase project for authentication only (never for your media files).
 
 ### Building
-Make sure [Rust](https://rust-lang.org/) & [Node.js](https://nodejs.org/) toolchains are installed.
+
+Make sure [Rust](https://rust-lang.org/) & [Node.js](https://nodejs.org/) toolchains are installed ([pnpm](https://pnpm.io) as package manager).
 
 Local Development:
-- Start Tauri server
 ```
-pnpm tauri:dev 
-```
-- Start Vite server:
-```
-pnpm vite:dev
+pnpm install
+pnpm tauri:dev
 ```
 
 Production Build:
@@ -94,12 +86,7 @@ pnpm tauri:build
 </summary>
 	<img src="https://github.com/user-attachments/assets/f89d3c18-20fd-4359-937b-d4f0c2a4a3f8" width="100%" alt="Compression Output" loading="lazy" />
 	<img src="https://github.com/user-attachments/assets/49f95db6-5e9e-4abf-bc7f-54dd3f0ae534" width="100%" alt="Trim/Split feature" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/b96fcd4b-1d02-4394-9dd7-419cb4568234" width="100%" alt="Batch Compression" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/d86dae45-60c9-4d54-b7b2-98674105103a" width="576" alt="Vide/Audio Config" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/f7877316-ab91-4f08-9b4d-e2bb21cc8d5a" width="576" alt="App Settings" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/b7367803-c336-4eca-a8e3-cf53044340df" width="576" alt="Subtitle Embed" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/23bdeb17-5fb1-4376-84ed-61a0712e7aea" width="576" alt="Metadata Update" loading="lazy" />
-	<img src="https://github.com/user-attachments/assets/61559ad7-cd2c-46cf-925f-ae189db0599c" width="576" alt="About" loading="lazy" />
+	<img src="https://github.com/user-attachments/assets/68dcae45-5e9e-4abf-bc7f-54dd3f0ae534" width="100%" alt="Batch Compression" loading="lazy" />
 </details>
 
 ### FAQs
@@ -109,61 +96,26 @@ pnpm tauri:build
   MacOS: "CompressO" is damaged and can't be opened. You should move it to trash. 
   </strong>
 </summary>
-<img src="assets/image.png" width="300" />
 <p>
-  This error is shown by Apple to gatekeep app developers from using their apps unless it's signed by Apple after paying $100/year fee. The message is completely misleading since the app is not damaged at all. Since this is a free app, I'm not going to go Apple's route just to appease them to make people trust my app. Here's a simple solution for this issue. Open your terminal and run the command:
+  This error is shown by Apple for apps that are not signed/notarized with a paid Apple Developer account. The app is not damaged. Open your terminal and run:
 </p>
 
 ```
 xattr -cr /Applications/CompressO.app
 ```
-<p>
-  This error will not show if you install the app via Homebrew.
-</p>
-<p>
-  If you don't feel comfortable applying the above solution, you can simply move the app to trash (which also means you cannot use CompressO on your Mac).
-</p>
-</details>
-<details>
-<summary>
-  <strong>MacOS: "CompressO" cannot be opened because developer cannot be verified.</strong>
-</summary>
-<img src="assets/image-1.png" width="300" />
-<p>
-  This error is essentially the same as FAQ 1. Apple just displays a different message to warn users about unverified developers. Please refer to the solution in FAQ 1:
-</p>
-<pre><code>
-xattr -cr /Applications/CompressO.app
-</code></pre>
-<p>
-  This error will not show if you install the app via Homebrew.
-</p>
-<p>
-  If you don’t want to run the command, you can right-click the app and select "Open" to bypass the warning, or move the app to trash.
-</p>
 </details>
 
 <details>
 <summary>
-  <strong>Windows: Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.</strong>
-</summary>
-<img src="assets/image-2.png" width="500" />
-<p>
-  This happens because you downloaded the Windows installer from an outside source. Windows Defender warns you before running any unknown app. You can safely install CompressO by clicking "More Info" and then selecting "Run Anyway".
-</p>
-</details>
-
-<details>
-<summary>
-  <strong>App not working on Debian 13 & Ubuntu 24</strong>
+  <strong>Windows: Microsoft Defender SmartScreen prevented an unrecognized app from starting.</strong>
 </summary>
 <p>
-  Tauri seems to be missing some packages that were removed in Debian 13 and its derivatives like Ubuntu 24. The Tauri team is investigating the issue, so unfortunately there is no solution at the moment.
+  Click "More Info" and then "Run Anyway".
 </p>
 </details>
 
 ### License 🚨
 
-The project is licensed under <a href="./LICENSE">AGPL 3.0</a>
+This fork — like [upstream CompressO](https://github.com/codeforreal1/compressO) — is licensed under <a href="./LICENSE">AGPL 3.0</a>. If you distribute modified versions (including builds of this fork), you must do so under the same license and make the corresponding source available.
 
 This project bundles and uses third-party software. For complete third-party notices, licenses, and attributions, please see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

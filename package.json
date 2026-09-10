@@ -30,6 +30,7 @@
     "@heroui/react": "2.7.11",
     "@heroui/use-theme": "^2.1.2",
     "@internationalized/date": "^3.10.1",
+    "@supabase/supabase-js": "^2.116.0",
     "@tanstack/react-router": "^1.97.21",
     "@tanstack/router-devtools": "^1.97.21",
     "@tauri-apps/api": "2.0.0",
@@ -84,6 +85,8 @@
     }
   },
   "lint-staged": {
-    "src/**/*.{js,ts,jsx,tsx}": ["biome check --write"]
+    "src/**/*.{js,ts,jsx,tsx}": [
+      "biome check --write"
+    ]
   }
 }
