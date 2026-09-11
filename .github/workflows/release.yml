@@ -57,7 +57,9 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        # --ignore-scripts skips the `pnpm:devPreinstall` fnm hook (not
+        # available on CI runners); no dependency relies on install scripts.
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - uses: tauri-apps/tauri-action@v0
         env:
